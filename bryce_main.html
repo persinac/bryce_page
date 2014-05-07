@@ -15,7 +15,8 @@
 	<link href='dist/fullcalendar/fullcalendar.css' rel='stylesheet' />
 	<link href='dist/fullcalendar/fullcalendar.print.css' rel='stylesheet' media='print' />
 	<link href="dist/css/bryce_main.css" rel="stylesheet">
-
+	<link rel="stylesheet" href="dist/jq_ui/css/ui-lightness/jquery-ui-1.10.4.custom.css" />
+	
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -49,19 +50,26 @@
       </div>
 	
 	<div id="calendar"></div>
-	
+	<div id="eventContent" title="Event Details">
+		<div id="eventInfo"></div>
+	</div>
+	<div id="dialog-modal" title="Basic modal dialog">
+		<div id="workoutcontent"></div>
+	  <p></p>
+	</div>
     </div>
 
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins)-->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="dist/js/bootstrap.min.js"></script>
+	
     <script src='dist/lib/moment.min.js'></script>
-<script src='dist/lib/jquery.min.js'></script>
-<script src='dist/lib/jquery-ui.custom.min.js'></script>
-<script src='dist/fullcalendar/fullcalendar.min.js'></script>
+	<!--<script src='dist/lib/jquery.min.js'></script>
+	<script src='dist/lib/jquery-ui.custom.min.js'></script>-->
+	<script src="dist/jq_ui/js/jquery-1.10.2.js"></script>
+	<script src="dist/jq_ui/js/jquery-ui-1.10.4.custom.min.js"></script>
+	<script src='dist/fullcalendar/fullcalendar.min.js'></script>
 <script>
 
 	$(document).ready(function() {
@@ -92,7 +100,8 @@
 			events: [
 				{
 					title: 'All Day Event',
-					start: '2014-01-01'
+					start: '2014-01-01',
+					description: 'Somethings hereeeeeee'
 				},
 				{
 					title: 'Long Event',
@@ -126,11 +135,54 @@
 					title: 'Click for Google',
 					url: 'http://google.com/',
 					start: '2014-01-28'
+				},
+				{
+					url: 'bryce_getWorkouts.php',
+					type: 'POST',
+					data: { "date" : "2014-05-05" },
+					error: function() {
+						alert('there was an error while fetching events!');
+					},
+					color: 'yellow',   // a non-ajax option
+					textColor: 'black' // a non-ajax option
 				}
-			]
+			],
+			eventRender: function (event, element) {
+				element.attr('href', 'javascript:void(0);');
+				element.attr('onclick', 'openModal("' + event.title + '","' + event.description + '");');
+			}
 		});
 		
 	});
+	
+function openModal(title, info) {
+    $("#eventInfo").html(info);
+    $( "#dialog-modal" ).dialog({
+      height: 140,
+      modal: true
+    });
+	$('#workoutcontent').html(info);
+	getWorkouts();
+}
+
+function getWorkouts() {
+	console.log("getting workouts...");
+	$.ajax(
+	{ 
+	  type:"POST",                                     
+	  url:"bryce_getWorkouts.php",         
+	  data: { "date" : "2014-05-05" }, //insert argumnets here to pass to getAdminWODs
+	  dataType: "text",                //data format      
+	  success: function(response) //on recieve of reply
+	  {
+		console.log(response);
+		//drawWeeklyActivityBreakdown(response);
+	  },
+	  error: function(){
+			alert('error loading workouts!');
+		}
+	});
+}
 
 	</script>
   </body>
