@@ -72,15 +72,33 @@
 	<script src='dist/fullcalendar/fullcalendar.min.js'></script>
 <script>
 
+var today = new Date();
+function getCurrentDate()
+{
+	var dd = today.getDate();
+	var mm = today.getMonth()+1; //January is 0!
+	var yyyy = today.getFullYear();
+	
+	if(dd<10) {
+		dd='0'+dd;
+	} 
+	
+	if(mm<10) {
+		mm='0'+mm;
+	} 
+	today = yyyy+'-'+mm+'-'+dd;
+	//alert("today");
+}
+	
 	$(document).ready(function() {
-		
+		getCurrentDate();
 		$('#calendar').fullCalendar({
 			header: {
 				left: 'prev,next today',
 				center: 'title',
 				right: 'month,agendaWeek,agendaDay'
 			},
-			defaultDate: '2014-01-12',
+			defaultDate: today,
 			selectable: true,
 			selectHelper: true,
 			select: function(start, end) {
@@ -97,13 +115,68 @@
 				$('#calendar').fullCalendar('unselect');
 			},
 			editable: true,
-			events: [
-				{
+			events:/*
 					title: 'All Day Event',
 					start: '2014-01-01',
 					description: 'Somethings hereeeeeee'
-				},
+				},*/
+				
 				{
+					url: 'bryce_getWorkouts.php',
+					type: 'POST',
+					data: { "date" : "2014-05-05" },
+					datatype: 'json',
+					success: function(data) {
+						console.log("logged workout: " + data + ", title? ");
+					},
+					error: function(data) {
+						console.log("Error: " + data);
+						getWorkouts();
+						//alert('there was an error while fetching events!');
+					},
+					//color: 'blue',   // a non-ajax option
+					textColor: 'black' // a non-ajax option
+				},
+			eventRender: function (event, element) {
+				console.log("Title: "+ event.title + ", description: " + event.description.substring(1,20));
+				element.attr('href', 'javascript:void(0);');
+				element.attr('onclick', 'openModal("' + event.title + '","' + event.description + '");');
+			}
+		});
+		
+	});
+	
+function openModal(title, info) {
+    //$("#eventInfo").html(info);
+    $( "#dialog-modal" ).dialog({
+      height: 400,
+      modal: true
+    });
+	$( "#dialog-modal" ).dialog('option', 'title', title);
+	$('#workoutcontent').html(info);
+	getWorkouts();
+}
+
+function getWorkouts() {
+	console.log("getting workouts...");
+	$.ajax(
+	{ 
+	  type:"POST",                                     
+	  url:"bryce_getWorkouts.php",         
+	  data: { "date" : "2014-05-05" }, //insert argumnets here to pass to getAdminWODs
+	  dataType: "text",                //data format      
+	  success: function(response) //on recieve of reply
+	  {
+		console.log(response);
+		//drawWeeklyActivityBreakdown(response);
+	  },
+	  error: function(){
+			alert('error loading workouts!');
+		}
+	});
+}
+/*
+{
 					title: 'Long Event',
 					start: '2014-01-07',
 					end: '2014-01-10'
@@ -136,53 +209,8 @@
 					url: 'http://google.com/',
 					start: '2014-01-28'
 				},
-				{
-					url: 'bryce_getWorkouts.php',
-					type: 'POST',
-					data: { "date" : "2014-05-05" },
-					error: function() {
-						alert('there was an error while fetching events!');
-					},
-					color: 'yellow',   // a non-ajax option
-					textColor: 'black' // a non-ajax option
-				}
-			],
-			eventRender: function (event, element) {
-				element.attr('href', 'javascript:void(0);');
-				element.attr('onclick', 'openModal("' + event.title + '","' + event.description + '");');
-			}
-		});
-		
-	});
-	
-function openModal(title, info) {
-    $("#eventInfo").html(info);
-    $( "#dialog-modal" ).dialog({
-      height: 140,
-      modal: true
-    });
-	$('#workoutcontent').html(info);
-	getWorkouts();
-}
 
-function getWorkouts() {
-	console.log("getting workouts...");
-	$.ajax(
-	{ 
-	  type:"POST",                                     
-	  url:"bryce_getWorkouts.php",         
-	  data: { "date" : "2014-05-05" }, //insert argumnets here to pass to getAdminWODs
-	  dataType: "text",                //data format      
-	  success: function(response) //on recieve of reply
-	  {
-		console.log(response);
-		//drawWeeklyActivityBreakdown(response);
-	  },
-	  error: function(){
-			alert('error loading workouts!');
-		}
-	});
-}
+*/
 
 	</script>
   </body>

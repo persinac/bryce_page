@@ -33,9 +33,12 @@ function GetSQLValueString($theValue, $theType, $theDefinedValue = "", $theNotDe
 } #end function
 //echo "whattttttt....";
 class wod {
-	   public $title = "";
-       public $start = "";
-       public $descrip  = "";
+	public $id = 0;
+	public $title = "";
+	public $start = "";
+	public $end = "";
+	public $description  = "";
+	public $color = "";
    }
 
 $mysqli = new mysqli($hostname_brycConn, $username_brycConn, $password_brycConn, $database_brycConn);
@@ -45,63 +48,169 @@ if (mysqli_connect_errno()) {
     printf("Connect failed: %s\n", mysqli_connect_error());
     exit();
 }
-$query = "select DATE_FORMAT(date, '%Y-%m-%d') AS date, warmup, strength, conditioning, speed from bryce where date = '{$t_date}'";
+
+$query = "select DATE_FORMAT(date, '%Y-%m-%d') AS date, warmup, strength, conditioning, speed, core, rest from bryce";
+
 if ($result2 = $mysqli->query($query)) {
-	///echo "hellooooo...";
 	$cars = array();
-    /* fetch associative array */
-    while ($row = $result2->fetch_assoc()) {
-        //printf ("MYSQLi STUFF: %s %s\n", $row["date"], $row["strength"]);
-		$w = new wod();
-		$w->title = $row["date"];
-		$w->start = $row["date"];
-		if(strlen($row["warmup"]) > 0) {
-			$w->descrip .= $row["warmup"];
+	$index = 1;
+	$warm = 1;
+	$str = 1;
+	$cond = 1;
+	$speed = 1;
+	$core = 1;
+	$is_rest_day = 0;
+	$prev_date = "";
+	 /* fetch associative array */
+   while ($row = $result2->fetch_assoc()) {
+        if($prev_date == $row["date"]) {
+			$warm = $warm + 1;
+			$str = $str + 1;
+			$cond = $cond + 1;
+			$speed = $speed + 1;
+			$core = $core + 1;
+			$index = $index + 5;
 		}
-		if(strlen($row["strength"]) > 0) {
-			$w->descrip .= $row["strength"];
+		if($is_rest_day < 1) {
+			if(strlen($row["rest"]) > 0) {
+				//echo "REST DAY ON " . $row["date"];
+				$w = new wod();
+				$w->id = $index;
+				//$w->title = $row["date"];
+				if($index < 10) {
+					$w->start = $row["date"] . "T0".$index.":00:00";
+					$w->end = $row["date"] . "T0".$index.":59:00";
+				} else if ($index > 9 && $index < 13) {
+					$w->start = $row["date"] . "T".$index.":00:00";
+					$w->end = $row["date"] . "T0".$index.":59:00";
+				}
+				$w->description = "Rest Day";
+				$w->title = "Rest Day";
+				$is_rest_day = 1;
+				
+				$cars[] = $w;
+				$index = $index + 1;
+			} else {
+				if(strlen($row["warmup"]) > 0) {
+					//echo "WARMUP " . $row["date"];
+					$w = new wod();
+					$w->id = $index;
+					//$w->title = $row["date"];
+					if($index < 10) {
+						$w->start = $row["date"] . "T0".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					} else if ($index > 9 && $index < 13) {
+						$w->start = $row["date"] . "T".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					}
+					$w->title = "Warm up " . $warm;
+					$w->description .= "".$row["warmup"]."  ";
+					$w->color = "yellow";
+					
+					$cars[] = $w;
+					$index = $index + 1;
+					//$warm = $warm + 1;					
+				}
+				if(strlen($row["strength"]) > 0) {
+					//echo "STRENGTH ON " . $row["date"];
+					$w = new wod();
+					$w->id = $index;
+					//$w->title = $row["date"];
+					if($index < 10) {
+						$w->start = $row["date"] . "T0".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					} else if ($index > 9 && $index < 13) {
+						$w->start = $row["date"] . "T".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					}
+					
+					$w->description .= "".$row["strength"]."  ";
+					$w->title = "Strength " . $str;
+					$w->color = "blue";
+					
+					$cars[] = $w;
+					$index = $index + 1;
+					//$str = $str + 1;
+				}
+				if(strlen($row["conditioning"]) > 0) {
+					//echo "Conditioning ON " . $row["date"];
+					$w = new wod();
+					$w->id = $index;
+					//$w->title = $row["date"];
+					if($index < 10) {
+						$w->start = $row["date"] . "T0".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					} else if ($index > 9 && $index < 13) {
+						$w->start = $row["date"] . "T".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					}
+					
+					$w->description .= "".$row["conditioning"]."  ";
+					$w->title = "Conditioning ".$cond;
+					$w->color = "orange";
+					
+					$cars[] = $w;
+					$index = $index + 1;
+					///$cond = $cond + 1;
+				}
+				if(strlen($row["speed"]) > 0) {
+					//echo "SPEED ON " . $row["date"];
+					$w = new wod();
+					$w->id = $index;
+					//$w->title = $row["date"];
+					if($index < 10) {
+						$w->start = $row["date"] . "T0".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					} else if ($index > 9 && $index < 13) {
+						$w->start = $row["date"] . "T".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					}
+					
+					$w->description .= "".$row["speed"]."  ";
+					$w->title = "Speed " . $speed;
+					$w->color = "green";
+					
+					$cars[] = $w;
+					$index = $index + 1;
+					//$speed = $speed + 1;
+				}
+				if(strlen($row["core"]) > 0) {
+					//echo "CORE ON " . $row["date"];
+					$w = new wod();
+					$w->id = $index;
+					//$w->title = $row["date"];
+					if($index < 10) {
+						$w->start = $row["date"] . "T0".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					} else if ($index > 9 && $index < 13) {
+						$w->start = $row["date"] . "T".$index.":00:00";
+						$w->end = $row["date"] . "T0".$index.":59:00";
+					}
+					
+					$w->description .= "".$row["core"]."  ";
+					$w->title = "Core " . $core;
+					$w->color = "purple";
+							
+					$cars[] = $w;
+					$index = $index + 1;
+					//$core = 1;
+				}
+			}
 		}
-		if(strlen($row["conditioning"]) > 0) {
-			$w->descrip .= $row["conditioning"];
-		}
-		if(strlen($row["speed"]) > 0) {
-			$w->descrip .= $row["speed"];
-		}
-		$cars[] = $w;
+		$prev_date = $row["date"];
+		$is_rest_day = 0;
+		$index = 1;
+		$warm = 1;
+		$str = 1;
+		$cond = 1;
+		$speed = 1;
+		$core = 1;
     }
-	//print_r($cars);
+	//echo "END";
 	echo json_encode($cars);
-    /* free result set */
+	    /* free result set */
     $result2->free();
 }
-
 /* close connection */
 $mysqli->close();
-/*
-mysql_select_db($database_brycConn, $brycConn);
-
-###
-# Defualt view 
-###
-$query_getAdminWeeklyTotals = "select DATE_FORMAT(date, '%Y-%m-%d') AS date, warmup, strength, conditioning, speed from bryce where date = '{$t_date}'";
-$getAdminWeeklyTotals = mysql_query($query_getAdminWeeklyTotals, $brycConn) or die(mysql_error());
-$totalRows_getAdminWeeklyTotals = mysql_num_rows($getAdminWeeklyTotals);
-$results = array();
-
-while ($row = mysql_fetch_assoc($getAdminWeeklyTotals)) {
-    echo $row["date"];
-    echo $row["warmup"];
-    echo $row["strength"];
-	echo $row["conditioning"];
-	echo $row["speed"];
-}
-
-
-for($i = 0; $i < $totalRows_getAdminWeeklyTotals; $i++)
-{
-	$results[] = mysql_fetch_assoc($getAdminWeeklyTotals);
-}
-
-echo json_encode($results);
-*/	
 ?>
